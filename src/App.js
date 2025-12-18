@@ -9,35 +9,6 @@ import { Check, Heart, Info, Search, SlidersHorizontal, X } from "lucide-react";
 // Single-file React page (Tailwind classes + inline theme tokens)
 // ------------------------------------------------------------
 
-type Season = "Зима" | "Весна" | "Лето" | "Осень";
-
-type Perfume = {
-  id: string;
-  brand: string;
-  name: string;
-  family: string;
-  price: number;
-  currency: string;
-  seasons: Season[];
-  dayNight: ("День" | "Ночь")[];
-  longevity: 1 | 2 | 3 | 4 | 5;
-  sillage: 1 | 2 | 3 | 4 | 5;
-  notes: {
-    top: string[];
-    heart: string[];
-    base: string[];
-  };
-  tags: string[];
-  description: string;
-};
-
-type NoteGroup = {
-  label: string;
-  notes: string[];
-};
-
-type SortKey = "match" | "price_asc" | "price_desc" | "longevity" | "sillage";
-
 // --------------------
 // THEME
 // User requested exact background: rgb(127,122,73)
@@ -63,14 +34,14 @@ const THEME = {
   accentRing: "rgba(127,122,73,0.40)",
 };
 
-const SEASONS: { key: Season; hint: string }[] = [
+const SEASONS = [
   { key: "Зима", hint: "Плотные, тёплые, амбровые" },
   { key: "Весна", hint: "Нежные, прозрачные, цветочные" },
   { key: "Лето", hint: "Свежие, лёгкие, цитрусовые" },
   { key: "Осень", hint: "Древесные, пряные, уютные" },
 ];
 
-const ALL_NOTES_GROUPS: NoteGroup[] = [
+const ALL_NOTES_GROUPS = [
   {
     label: "Цитрусы",
     notes: ["Бергамот", "Лимон", "Апельсин", "Грейпфрут", "Нероли", "Мандарин"],
@@ -105,7 +76,7 @@ const ALL_NOTES_GROUPS: NoteGroup[] = [
   },
 ];
 
-const PERFUMES: Perfume[] = [
+const PERFUMES = [
   {
     id: "p-01",
     brand: "Maison Aurora",
@@ -123,7 +94,8 @@ const PERFUMES: Perfume[] = [
       base: ["Мускус", "Кедр"],
     },
     tags: ["унисекс", "офис", "чистый"],
-    description: "Искрящаяся свежесть с мягким мускусным шлейфом. Идеален для тёплых дней.",
+    description:
+      "Искрящаяся свежесть с мягким мускусным шлейфом. Идеален для тёплых дней.",
   },
   {
     id: "p-02",
@@ -260,15 +232,15 @@ const PERFUMES: Perfume[] = [
   },
 ];
 
-function clamp(n: number, min: number, max: number) {
+function clamp(n, min, max) {
   return Math.max(min, Math.min(max, n));
 }
 
-function uniq<T>(arr: T[]) {
+function uniq(arr) {
   return Array.from(new Set(arr));
 }
 
-function plural(n: number, one: string, few: string, many: string) {
+function plural(n, one, few, many) {
   const mod10 = n % 10;
   const mod100 = n % 100;
   if (mod10 === 1 && mod100 !== 11) return one;
@@ -276,13 +248,7 @@ function plural(n: number, one: string, few: string, many: string) {
   return many;
 }
 
-function scorePerfume(
-  p: Perfume,
-  mustNotes: string[],
-  avoidNotes: string[],
-  seasons: Season[],
-  dayNight: ("День" | "Ночь")[]
-) {
+function scorePerfume(p, mustNotes, avoidNotes, seasons, dayNight) {
   const all = [...p.notes.top, ...p.notes.heart, ...p.notes.base];
   const allSet = new Set(all);
 
@@ -301,7 +267,7 @@ function scorePerfume(
   return clamp(score, -999, 999);
 }
 
-function Dots({ value }: { value: number }) {
+function Dots({ value }) {
   return (
     <div className="flex items-center gap-1">
       {Array.from({ length: 5 }).map((_, i) => {
@@ -309,9 +275,7 @@ function Dots({ value }: { value: number }) {
         return (
           <span
             key={i}
-            className={
-              "h-1.5 w-4 rounded-full " + (on ? "bg-white/85" : "bg-white/15")
-            }
+            className={"h-1.5 w-4 rounded-full " + (on ? "bg-white/85" : "bg-white/15")}
           />
         );
       })}
@@ -319,17 +283,7 @@ function Dots({ value }: { value: number }) {
   );
 }
 
-function SoftButton({
-  children,
-  onClick,
-  active,
-  title,
-}: {
-  children: React.ReactNode;
-  onClick?: () => void;
-  active?: boolean;
-  title?: string;
-}) {
+function SoftButton({ children, onClick, active, title }) {
   return (
     <button
       type="button"
@@ -347,7 +301,7 @@ function SoftButton({
   );
 }
 
-function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
+function Chip({ label, onRemove }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.02] px-3 py-1.5 text-sm text-white">
       <span className="text-white/90">{label}</span>
@@ -363,22 +317,9 @@ function Chip({ label, onRemove }: { label: string; onRemove: () => void }) {
   );
 }
 
-function SectionCard({
-  title,
-  subtitle,
-  right,
-  children,
-}: {
-  title: string;
-  subtitle?: string;
-  right?: React.ReactNode;
-  children: React.ReactNode;
-}) {
+function SectionCard({ title, subtitle, right, children }) {
   return (
-    <div
-      className="rounded-3xl border bg-white/[0.02] p-4"
-      style={{ borderColor: THEME.border2 }}
-    >
+    <div className="rounded-3xl border bg-white/[0.02] p-4" style={{ borderColor: THEME.border2 }}>
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-sm font-semibold" style={{ color: THEME.text }}>
@@ -397,17 +338,7 @@ function SectionCard({
   );
 }
 
-function Modal({
-  open,
-  title,
-  children,
-  onClose,
-}: {
-  open: boolean;
-  title: string;
-  children: React.ReactNode;
-  onClose: () => void;
-}) {
+function Modal({ open, title, children, onClose }) {
   return (
     <AnimatePresence>
       {open ? (
@@ -432,10 +363,7 @@ function Modal({
               aria-modal="true"
               aria-label={title}
             >
-              <div
-                className="flex items-center justify-between border-b p-5"
-                style={{ borderColor: THEME.border2 }}
-              >
+              <div className="flex items-center justify-between border-b p-5" style={{ borderColor: THEME.border2 }}>
                 <div>
                   <div className="text-base font-semibold" style={{ color: THEME.text }}>
                     {title}
@@ -458,10 +386,7 @@ function Modal({
                 {children}
               </div>
 
-              <div
-                className="flex justify-end border-t p-5"
-                style={{ borderColor: THEME.border2 }}
-              >
+              <div className="flex justify-end border-t p-5" style={{ borderColor: THEME.border2 }}>
                 <button
                   type="button"
                   className="rounded-full px-5 py-2.5 text-sm font-semibold"
@@ -479,21 +404,7 @@ function Modal({
   );
 }
 
-function NotePicker({
-  title,
-  value,
-  onChange,
-  placeholder,
-  tone,
-  allNotes,
-}: {
-  title: string;
-  value: string[];
-  onChange: (next: string[]) => void;
-  placeholder: string;
-  tone: "include" | "exclude";
-  allNotes: string[];
-}) {
+function NotePicker({ title, value, onChange, placeholder, tone, allNotes }) {
   const [query, setQuery] = useState("");
 
   const filtered = useMemo(() => {
@@ -505,28 +416,15 @@ function NotePicker({
 
   const badgeStyle =
     tone === "include"
-      ? {
-          borderColor: "rgba(247,242,232,0.18)",
-          background: "rgba(127,122,73,0.14)",
-        }
-      : {
-          borderColor: "rgba(247,242,232,0.18)",
-          background: "rgba(247,242,232,0.06)",
-        };
+      ? { borderColor: "rgba(247,242,232,0.18)", background: "rgba(127,122,73,0.14)" }
+      : { borderColor: "rgba(247,242,232,0.18)", background: "rgba(247,242,232,0.06)" };
 
   return (
     <SectionCard
       title={title}
-      subtitle={
-        tone === "include"
-          ? "Выберите ноты, которые хотите слышать"
-          : "Отметьте ноты, которые точно не подходят"
-      }
+      subtitle={tone === "include" ? "Выберите ноты, которые хотите слышать" : "Отметьте ноты, которые точно не подходят"}
       right={
-        <div
-          className="rounded-full border px-3 py-1 text-xs"
-          style={{ ...badgeStyle, color: THEME.text }}
-        >
+        <div className="rounded-full border px-3 py-1 text-xs" style={{ ...badgeStyle, color: THEME.text }}>
           {value.length} {plural(value.length, "нота", "ноты", "нот")}
         </div>
       }
@@ -537,9 +435,7 @@ function NotePicker({
             Пока пусто.
           </div>
         ) : (
-          value.map((n) => (
-            <Chip key={n} label={n} onRemove={() => onChange(value.filter((x) => x !== n))} />
-          ))
+          value.map((n) => <Chip key={n} label={n} onRemove={() => onChange(value.filter((x) => x !== n))} />)
         )}
       </div>
 
@@ -582,10 +478,7 @@ function NotePicker({
             >
               <span
                 className="mr-2 inline-block h-1.5 w-1.5 rounded-full align-middle"
-                style={{
-                  background:
-                    tone === "include" ? THEME.accent : "rgba(247,242,232,0.60)",
-                }}
+                style={{ background: tone === "include" ? THEME.accent : "rgba(247,242,232,0.60)" }}
               />
               {n}
             </button>
@@ -596,27 +489,9 @@ function NotePicker({
   );
 }
 
-function PerfumeCard({
-  perfume,
-  score,
-  liked,
-  onLike,
-  onOpen,
-}: {
-  perfume: Perfume;
-  score: number;
-  liked: boolean;
-  onLike: () => void;
-  onOpen: () => void;
-}) {
+function PerfumeCard({ perfume, score, liked, onLike, onOpen }) {
   const scoreLabel =
-    score >= 10
-      ? "Точное попадание"
-      : score >= 6
-      ? "Хорошо подходит"
-      : score >= 3
-      ? "Похоже"
-      : "Слабое совпадение";
+    score >= 10 ? "Точное попадание" : score >= 6 ? "Хорошо подходит" : score >= 3 ? "Похоже" : "Слабое совпадение";
 
   return (
     <motion.div
@@ -647,18 +522,12 @@ function PerfumeCard({
           style={{ borderColor: liked ? "rgba(247,242,232,0.20)" : THEME.border2 }}
           aria-label={liked ? "Убрать из избранного" : "В избранное"}
         >
-          <Heart
-            className={"h-5 w-5 " + (liked ? "fill-current" : "")}
-            style={{ color: liked ? THEME.accent : THEME.muted }}
-          />
+          <Heart className={"h-5 w-5 " + (liked ? "fill-current" : "")} style={{ color: liked ? THEME.accent : THEME.muted }} />
         </button>
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div
-          className="rounded-2xl border px-3 py-2"
-          style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
-        >
+        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
           <div className="text-xs" style={{ color: THEME.muted }}>
             Сезон
           </div>
@@ -666,10 +535,7 @@ function PerfumeCard({
             {perfume.seasons.join(" · ")}
           </div>
         </div>
-        <div
-          className="rounded-2xl border px-3 py-2"
-          style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
-        >
+        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
           <div className="text-xs" style={{ color: THEME.muted }}>
             Время
           </div>
@@ -677,10 +543,7 @@ function PerfumeCard({
             {perfume.dayNight.join(" · ")}
           </div>
         </div>
-        <div
-          className="rounded-2xl border px-3 py-2"
-          style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
-        >
+        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
           <div className="text-xs" style={{ color: THEME.muted }}>
             Цена
           </div>
@@ -698,10 +561,7 @@ function PerfumeCard({
       </div>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div
-          className="rounded-2xl border px-3 py-2"
-          style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
-        >
+        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
           <div className="text-xs" style={{ color: THEME.muted }}>
             Стойкость
           </div>
@@ -709,10 +569,7 @@ function PerfumeCard({
             <Dots value={perfume.longevity} />
           </div>
         </div>
-        <div
-          className="rounded-2xl border px-3 py-2"
-          style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
-        >
+        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
           <div className="text-xs" style={{ color: THEME.muted }}>
             Шлейф
           </div>
@@ -726,10 +583,7 @@ function PerfumeCard({
         <div className="text-xs" style={{ color: THEME.muted }}>
           Совпадение: <span style={{ color: THEME.text }}>{scoreLabel}</span>
         </div>
-        <div
-          className="mt-2 h-2 w-full overflow-hidden rounded-full"
-          style={{ background: "rgba(255,255,255,0.10)" }}
-        >
+        <div className="mt-2 h-2 w-full overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.10)" }}>
           <div
             className="h-full rounded-full"
             style={{
@@ -765,26 +619,22 @@ function PerfumeCard({
 export default function PerfumeShopSite() {
   const allNotes = useMemo(() => {
     const fromGroups = ALL_NOTES_GROUPS.flatMap((g) => g.notes);
-    const fromPerfumes = PERFUMES.flatMap((p) => [
-      ...p.notes.top,
-      ...p.notes.heart,
-      ...p.notes.base,
-    ]);
+    const fromPerfumes = PERFUMES.flatMap((p) => [...p.notes.top, ...p.notes.heart, ...p.notes.base]);
     return uniq([...fromGroups, ...fromPerfumes]).sort((a, b) => a.localeCompare(b, "ru"));
   }, []);
 
-  const [mustNotes, setMustNotes] = useState<string[]>(["Бергамот"]);
-  const [avoidNotes, setAvoidNotes] = useState<string[]>([]);
-  const [seasons, setSeasons] = useState<Season[]>([]);
-  const [dayNight, setDayNight] = useState<("День" | "Ночь")[]>([]);
+  const [mustNotes, setMustNotes] = useState(["Бергамот"]);
+  const [avoidNotes, setAvoidNotes] = useState([]);
+  const [seasons, setSeasons] = useState([]);
+  const [dayNight, setDayNight] = useState([]);
   const [q, setQ] = useState("");
-  const [sort, setSort] = useState<SortKey>("match");
+  const [sort, setSort] = useState("match");
 
   const [filtersOpenMobile, setFiltersOpenMobile] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 
-  const [likedIds, setLikedIds] = useState<string[]>([]);
-  const [activePerfume, setActivePerfume] = useState<Perfume | null>(null);
+  const [likedIds, setLikedIds] = useState([]);
+  const [activePerfume, setActivePerfume] = useState(null);
 
   const computed = useMemo(() => {
     const query = q.trim().toLowerCase();
@@ -821,10 +671,7 @@ export default function PerfumeShopSite() {
       return b.score - a.score;
     });
 
-    return {
-      total: sorted.length,
-      items: sorted,
-    };
+    return { total: sorted.length, items: sorted };
   }, [q, mustNotes, avoidNotes, seasons, dayNight, sort]);
 
   const clearAll = () => {
@@ -836,15 +683,15 @@ export default function PerfumeShopSite() {
     setSort("match");
   };
 
-  const toggleSeason = (s: Season) => {
+  const toggleSeason = (s) => {
     setSeasons((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
   };
 
-  const toggleDayNight = (d: "День" | "Ночь") => {
+  const toggleDayNight = (d) => {
     setDayNight((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
   };
 
-  const presets: { title: string; apply: () => void }[] = [
+  const presets = [
     {
       title: "Лето • свежий цитрус",
       apply: () => {
@@ -889,10 +736,7 @@ export default function PerfumeShopSite() {
 
   const Filters = (
     <div className="space-y-4">
-      <div
-        className="rounded-3xl border p-4"
-        style={{ borderColor: THEME.border2, background: THEME.surface2 }}
-      >
+      <div className="rounded-3xl border p-4" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
         <div className="text-sm font-semibold" style={{ color: THEME.text }}>
           Быстрый старт
         </div>
@@ -939,11 +783,7 @@ export default function PerfumeShopSite() {
             >
               <span
                 className="inline-block h-2 w-2 rounded-full"
-                style={{
-                  background: seasons.includes(s.key)
-                    ? THEME.accent
-                    : "rgba(247,242,232,0.35)",
-                }}
+                style={{ background: seasons.includes(s.key) ? THEME.accent : "rgba(247,242,232,0.35)" }}
               />
               {s.key}
             </SoftButton>
@@ -953,31 +793,17 @@ export default function PerfumeShopSite() {
 
       <SectionCard title="Время" subtitle="Уточняет подбор">
         <div className="flex flex-wrap gap-2">
-          <SoftButton
-            active={dayNight.includes("День")}
-            onClick={() => toggleDayNight("День")}
-          >
+          <SoftButton active={dayNight.includes("День")} onClick={() => toggleDayNight("День")}>
             <span
               className="inline-block h-2 w-2 rounded-full"
-              style={{
-                background: dayNight.includes("День")
-                  ? THEME.accent
-                  : "rgba(247,242,232,0.35)",
-              }}
+              style={{ background: dayNight.includes("День") ? THEME.accent : "rgba(247,242,232,0.35)" }}
             />
             День
           </SoftButton>
-          <SoftButton
-            active={dayNight.includes("Ночь")}
-            onClick={() => toggleDayNight("Ночь")}
-          >
+          <SoftButton active={dayNight.includes("Ночь")} onClick={() => toggleDayNight("Ночь")}>
             <span
               className="inline-block h-2 w-2 rounded-full"
-              style={{
-                background: dayNight.includes("Ночь")
-                  ? THEME.accent
-                  : "rgba(247,242,232,0.35)",
-              }}
+              style={{ background: dayNight.includes("Ночь") ? THEME.accent : "rgba(247,242,232,0.35)" }}
             />
             Ночь
           </SoftButton>
@@ -1006,10 +832,7 @@ export default function PerfumeShopSite() {
         <div className="space-y-3">
           {ALL_NOTES_GROUPS.map((g) => (
             <div key={g.label}>
-              <div
-                className="text-xs font-semibold uppercase tracking-wider"
-                style={{ color: THEME.muted2 }}
-              >
+              <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: THEME.muted2 }}>
                 {g.label}
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -1049,16 +872,10 @@ export default function PerfumeShopSite() {
 
   return (
     <div className="min-h-screen" style={{ background: THEME.bg, color: THEME.text }}>
-      <header
-        className="sticky top-0 z-30 border-b backdrop-blur"
-        style={{ borderColor: THEME.border2, background: "rgba(12,12,16,0.72)" }}
-      >
+      <header className="sticky top-0 z-30 border-b backdrop-blur" style={{ borderColor: THEME.border2, background: "rgba(12,12,16,0.72)" }}>
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <div
-              className="grid h-10 w-10 place-items-center rounded-2xl border"
-              style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
-            >
+            <div className="grid h-10 w-10 place-items-center rounded-2xl border" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: THEME.accent }} />
             </div>
             <div>
@@ -1109,16 +926,10 @@ export default function PerfumeShopSite() {
         </aside>
 
         <section className="md:col-span-8">
-          <div
-            className="rounded-3xl border p-4"
-            style={{ borderColor: THEME.border2, background: THEME.surface2 }}
-          >
+          <div className="rounded-3xl border p-4" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="relative flex-1">
-                <Search
-                  className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2"
-                  style={{ color: THEME.muted2 }}
-                />
+                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: THEME.muted2 }} />
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -1144,7 +955,7 @@ export default function PerfumeShopSite() {
                 </label>
                 <select
                   value={sort}
-                  onChange={(e) => setSort(e.target.value as SortKey)}
+                  onChange={(e) => setSort(e.target.value)}
                   className="rounded-2xl border bg-transparent px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[rgba(127,122,73,0.40)]"
                   style={{ borderColor: THEME.border2, color: THEME.text }}
                 >
@@ -1168,21 +979,12 @@ export default function PerfumeShopSite() {
             </div>
 
             <div className="mt-3 flex flex-wrap items-center gap-2">
-              <span
-                className="rounded-full border px-3 py-1.5 text-sm"
-                style={{ borderColor: THEME.border2, color: THEME.text }}
-              >
+              <span className="rounded-full border px-3 py-1.5 text-sm" style={{ borderColor: THEME.border2, color: THEME.text }}>
                 {computed.total} {plural(computed.total, "вариант", "варианта", "вариантов")}
               </span>
               {likedIds.length ? (
-                <span
-                  className="rounded-full border px-3 py-1.5 text-sm"
-                  style={{ borderColor: THEME.border2, color: THEME.text }}
-                >
-                  <Heart
-                    className="mr-2 inline-block h-4 w-4"
-                    style={{ color: THEME.accent }}
-                  />
+                <span className="rounded-full border px-3 py-1.5 text-sm" style={{ borderColor: THEME.border2, color: THEME.text }}>
+                  <Heart className="mr-2 inline-block h-4 w-4" style={{ color: THEME.accent }} />
                   {likedIds.length} {plural(likedIds.length, "избранный", "избранных", "избранных")}
                 </span>
               ) : null}
@@ -1199,10 +1001,7 @@ export default function PerfumeShopSite() {
           </div>
 
           {computed.total === 0 ? (
-            <div
-              className="mt-5 rounded-3xl border p-6"
-              style={{ borderColor: THEME.border2, background: THEME.surface2 }}
-            >
+            <div className="mt-5 rounded-3xl border p-6" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
               <div className="text-lg font-semibold" style={{ color: THEME.text }}>
                 Ничего не найдено
               </div>
@@ -1243,9 +1042,7 @@ export default function PerfumeShopSite() {
                     liked={likedIds.includes(perfume.id)}
                     onLike={() =>
                       setLikedIds((prev) =>
-                        prev.includes(perfume.id)
-                          ? prev.filter((x) => x !== perfume.id)
-                          : [...prev, perfume.id]
+                        prev.includes(perfume.id) ? prev.filter((x) => x !== perfume.id) : [...prev, perfume.id]
                       )
                     }
                     onOpen={() => setActivePerfume(perfume)}
@@ -1343,8 +1140,7 @@ export default function PerfumeShopSite() {
             Чем больше совпало — тем выше в выдаче.
           </p>
           <p>
-            <span className="font-semibold">Исключения</span>: если "Не подходит" встречается в пирамиде — рейтинг сильно
-            падает.
+            <span className="font-semibold">Исключения</span>: если "Не подходит" встречается в пирамиде — рейтинг сильно падает.
           </p>
           <p>
             <span className="font-semibold">Сезон и время суток</span>: мягкие бонусы, чтобы рекомендации звучали уместно.
@@ -1362,10 +1158,7 @@ export default function PerfumeShopSite() {
       >
         {activePerfume ? (
           <div className="space-y-5">
-            <div
-              className="rounded-3xl border p-4"
-              style={{ borderColor: THEME.border2, background: THEME.surface2 }}
-            >
+            <div className="rounded-3xl border p-4" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="text-sm" style={{ color: THEME.muted }}>
@@ -1394,11 +1187,7 @@ export default function PerfumeShopSite() {
                   <span
                     key={t}
                     className="rounded-full border px-3 py-1 text-xs"
-                    style={{
-                      borderColor: THEME.border2,
-                      color: THEME.text,
-                      background: "rgba(255,255,255,0.02)",
-                    }}
+                    style={{ borderColor: THEME.border2, color: THEME.text, background: "rgba(255,255,255,0.02)" }}
                   >
                     {t}
                   </span>
@@ -1406,10 +1195,7 @@ export default function PerfumeShopSite() {
               </div>
 
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div
-                  className="rounded-2xl border px-3 py-2"
-                  style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
-                >
+                <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
                   <div className="text-xs" style={{ color: THEME.muted }}>
                     Сезоны
                   </div>
@@ -1417,10 +1203,7 @@ export default function PerfumeShopSite() {
                     {activePerfume.seasons.join(", ")}
                   </div>
                 </div>
-                <div
-                  className="rounded-2xl border px-3 py-2"
-                  style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
-                >
+                <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
                   <div className="text-xs" style={{ color: THEME.muted }}>
                     Подходит
                   </div>
@@ -1428,10 +1211,7 @@ export default function PerfumeShopSite() {
                     {activePerfume.dayNight.join(", ")}
                   </div>
                 </div>
-                <div
-                  className="rounded-2xl border px-3 py-2"
-                  style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
-                >
+                <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
                   <div className="text-xs" style={{ color: THEME.muted }}>
                     Профиль
                   </div>
@@ -1452,67 +1232,37 @@ export default function PerfumeShopSite() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              <div
-                className="rounded-3xl border p-4"
-                style={{ borderColor: THEME.border2, background: THEME.surface2 }}
-              >
-                <div
-                  className="text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: THEME.muted2 }}
-                >
+              <div className="rounded-3xl border p-4" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
+                <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: THEME.muted2 }}>
                   Верх
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {activePerfume.notes.top.map((n) => (
-                    <span
-                      key={n}
-                      className="rounded-full border px-3 py-1 text-xs"
-                      style={{ borderColor: THEME.border2, color: THEME.text }}
-                    >
+                    <span key={n} className="rounded-full border px-3 py-1 text-xs" style={{ borderColor: THEME.border2, color: THEME.text }}>
                       {n}
                     </span>
                   ))}
                 </div>
               </div>
-              <div
-                className="rounded-3xl border p-4"
-                style={{ borderColor: THEME.border2, background: THEME.surface2 }}
-              >
-                <div
-                  className="text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: THEME.muted2 }}
-                >
+              <div className="rounded-3xl border p-4" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
+                <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: THEME.muted2 }}>
                   Сердце
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {activePerfume.notes.heart.map((n) => (
-                    <span
-                      key={n}
-                      className="rounded-full border px-3 py-1 text-xs"
-                      style={{ borderColor: THEME.border2, color: THEME.text }}
-                    >
+                    <span key={n} className="rounded-full border px-3 py-1 text-xs" style={{ borderColor: THEME.border2, color: THEME.text }}>
                       {n}
                     </span>
                   ))}
                 </div>
               </div>
-              <div
-                className="rounded-3xl border p-4"
-                style={{ borderColor: THEME.border2, background: THEME.surface2 }}
-              >
-                <div
-                  className="text-xs font-semibold uppercase tracking-wider"
-                  style={{ color: THEME.muted2 }}
-                >
+              <div className="rounded-3xl border p-4" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
+                <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: THEME.muted2 }}>
                   База
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {activePerfume.notes.base.map((n) => (
-                    <span
-                      key={n}
-                      className="rounded-full border px-3 py-1 text-xs"
-                      style={{ borderColor: THEME.border2, color: THEME.text }}
-                    >
+                    <span key={n} className="rounded-full border px-3 py-1 text-xs" style={{ borderColor: THEME.border2, color: THEME.text }}>
                       {n}
                     </span>
                   ))}
@@ -1534,9 +1284,7 @@ export default function PerfumeShopSite() {
                 className="flex-1 rounded-full border px-5 py-3 text-sm transition hover:bg-white/[0.06]"
                 style={{ borderColor: THEME.border2, color: THEME.text }}
                 onClick={() => {
-                  setLikedIds((prev) =>
-                    prev.includes(activePerfume.id) ? prev : [...prev, activePerfume.id]
-                  );
+                  setLikedIds((prev) => (prev.includes(activePerfume.id) ? prev : [...prev, activePerfume.id]));
                 }}
               >
                 В избранное
@@ -1553,7 +1301,7 @@ export default function PerfumeShopSite() {
 // Tiny self-tests (run only in test environments)
 // ------------------------------------------------------------
 
-function __assert(condition: boolean, message: string) {
+function __assert(condition, message) {
   if (!condition) throw new Error("Test failed: " + message);
 }
 
@@ -1573,12 +1321,8 @@ function runUnitTests() {
 }
 
 const __RUN_TESTS__ =
-  (typeof process !== "undefined" &&
-    (process as any) &&
-    (process as any).env &&
-    (process as any).env.NODE_ENV === "test") ||
-  (typeof (globalThis as any).vitest !== "undefined") ||
-  (typeof (globalThis as any).jest !== "undefined");
+  (typeof process !== "undefined" && process && process.env && process.env.NODE_ENV === "test") ||
+  typeof globalThis !== "undefined" && (typeof globalThis.vitest !== "undefined" || typeof globalThis.jest !== "undefined");
 
 if (__RUN_TESTS__) {
   runUnitTests();
