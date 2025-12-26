@@ -1,271 +1,13 @@
+import { useNavigate } from "react-router-dom";
 import React, { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Info, Search, SlidersHorizontal, X } from "lucide-react";
-
-// ------------------------------------------------------------
-// Aroma Atelier — premium minimal UX demo
-// Core feature: fragrance finder by NOTES + SEASONS
-// Design: minimal + premium palette
-// Single-file React page (Tailwind classes + inline theme tokens)
-// ------------------------------------------------------------
-
-// --------------------
-// THEME
-// User requested exact background: rgb(127,122,73)
-// --------------------
-
-const THEME = {
-  bg: "rgb(127,122,73)",
-
-  // Surfaces: use deep translucent layers on top of olive background
-  surface: "rgba(12,12,16,0.92)",
-  surface2: "rgba(12,12,16,0.82)",
-
-  text: "#F7F2E8",
-  muted: "rgba(247,242,232,0.70)",
-  muted2: "rgba(247,242,232,0.45)",
-
-  border: "rgba(247,242,232,0.16)",
-  border2: "rgba(247,242,232,0.10)",
-
-  // Accent derived from the same olive hue, but a bit brighter
-  accent: "rgb(165,160,95)",
-  accentSoft: "rgba(127,122,73,0.14)",
-  accentRing: "rgba(127,122,73,0.40)",
-};
-
-const SEASONS = [
-  { key: "Зима", hint: "Плотные, тёплые, амбровые" },
-  { key: "Весна", hint: "Нежные, прозрачные, цветочные" },
-  { key: "Лето", hint: "Свежие, лёгкие, цитрусовые" },
-  { key: "Осень", hint: "Древесные, пряные, уютные" },
-];
-
-const ALL_NOTES_GROUPS = [
-  {
-    label: "Цитрусы",
-    notes: ["Бергамот", "Лимон", "Апельсин", "Грейпфрут", "Нероли", "Мандарин"],
-  },
-  {
-    label: "Фрукты",
-    notes: ["Яблоко", "Груша", "Персик", "Черная смородина", "Инжир", "Манго"],
-  },
-  {
-    label: "Цветы",
-    notes: ["Роза", "Жасмин", "Пион", "Ирис", "Тубероза", "Ландыш", "Флердоранж"],
-  },
-  {
-    label: "Свежесть",
-    notes: ["Зеленый чай", "Мята", "Лаванда", "Озон", "Морские ноты", "Гальбанум"],
-  },
-  {
-    label: "Пряности",
-    notes: ["Ваниль", "Корица", "Кардамон", "Перец", "Шафран", "Гвоздика"],
-  },
-  {
-    label: "Древесные",
-    notes: ["Кедр", "Сандал", "Ветивер", "Пачули", "Уд", "Дубовый мох"],
-  },
-  {
-    label: "Смолы/Сладость",
-    notes: ["Амбра", "Ладан", "Бензоин", "Карамель", "Тонка", "Мускус"],
-  },
-  {
-    label: "Кожа/Табак",
-    notes: ["Кожа", "Табак", "Ром", "Кофе", "Какао"],
-  },
-];
-
-const PERFUMES = [
-  {
-    id: "p-01",
-    brand: "Maison Aurora",
-    name: "Citrus Veil",
-    family: "Citrus Aromatic",
-    price: 79,
-    currency: "€",
-    seasons: ["Лето", "Весна"],
-    dayNight: ["День"],
-    longevity: 3,
-    sillage: 2,
-    notes: {
-      top: ["Бергамот", "Грейпфрут", "Нероли"],
-      heart: ["Зеленый чай", "Мята"],
-      base: ["Мускус", "Кедр"],
-    },
-    tags: ["унисекс", "офис", "чистый"],
-    description:
-      "Искрящаяся свежесть с мягким мускусным шлейфом. Идеален для тёплых дней.",
-  },
-  {
-    id: "p-02",
-    brand: "Noir Atelier",
-    name: "Velvet Saffron",
-    family: "Amber Spicy",
-    price: 129,
-    currency: "€",
-    seasons: ["Зима", "Осень"],
-    dayNight: ["Ночь"],
-    longevity: 5,
-    sillage: 5,
-    notes: {
-      top: ["Шафран", "Перец"],
-      heart: ["Роза", "Пачули"],
-      base: ["Амбра", "Уд", "Ваниль"],
-    },
-    tags: ["вечер", "шлейф", "премиум"],
-    description: "Бархатная пряность и тёплая амбра. Смелый аромат для вечерних выходов.",
-  },
-  {
-    id: "p-03",
-    brand: "Flora Studio",
-    name: "Peony Air",
-    family: "Floral Fresh",
-    price: 69,
-    currency: "€",
-    seasons: ["Весна", "Лето"],
-    dayNight: ["День"],
-    longevity: 2,
-    sillage: 2,
-    notes: {
-      top: ["Груша", "Лимон"],
-      heart: ["Пион", "Ландыш"],
-      base: ["Мускус", "Ирис"],
-    },
-    tags: ["лёгкий", "романтика", "подарок"],
-    description: "Воздушный букет пионов с чистой мускусной базой. Максимально деликатный.",
-  },
-  {
-    id: "p-04",
-    brand: "Wood & Smoke",
-    name: "Autumn Library",
-    family: "Woody Spicy",
-    price: 99,
-    currency: "€",
-    seasons: ["Осень", "Зима"],
-    dayNight: ["День", "Ночь"],
-    longevity: 4,
-    sillage: 3,
-    notes: {
-      top: ["Кардамон", "Бергамот"],
-      heart: ["Кедр", "Кофе"],
-      base: ["Тонка", "Ваниль", "Дубовый мох"],
-    },
-    tags: ["уют", "унисекс", "древесный"],
-    description: "Тёплая древесность с намёком на кофе и ваниль. Спокойный премиальный вайб.",
-  },
-  {
-    id: "p-05",
-    brand: "Oceanite",
-    name: "Salt Skin",
-    family: "Marine Musk",
-    price: 85,
-    currency: "€",
-    seasons: ["Лето"],
-    dayNight: ["День"],
-    longevity: 3,
-    sillage: 3,
-    notes: {
-      top: ["Морские ноты", "Лимон"],
-      heart: ["Озон", "Нероли"],
-      base: ["Мускус", "Сандал"],
-    },
-    tags: ["свежесть", "унисекс"],
-    description: "Соль на коже, ветер и чистая древесная база. Лаконично и очень носибельно.",
-  },
-  {
-    id: "p-06",
-    brand: "Cacao Club",
-    name: "Dark Gourmand",
-    family: "Gourmand",
-    price: 115,
-    currency: "€",
-    seasons: ["Зима", "Осень"],
-    dayNight: ["Ночь"],
-    longevity: 5,
-    sillage: 4,
-    notes: {
-      top: ["Ром", "Персик"],
-      heart: ["Какао", "Корица"],
-      base: ["Ваниль", "Бензоин", "Амбра"],
-    },
-    tags: ["сладкий", "комплименты"],
-    description: "Тёмный гурманский шлейф: ром, какао и ваниль. Согревает и звучит дорого.",
-  },
-  {
-    id: "p-07",
-    brand: "Green Ritual",
-    name: "Tea Garden",
-    family: "Green Aromatic",
-    price: 74,
-    currency: "€",
-    seasons: ["Весна", "Лето"],
-    dayNight: ["День"],
-    longevity: 3,
-    sillage: 2,
-    notes: {
-      top: ["Мандарин", "Гальбанум"],
-      heart: ["Зеленый чай", "Лаванда"],
-      base: ["Ветивер", "Кедр"],
-    },
-    tags: ["спокойствие", "офис", "унисекс"],
-    description: "Зелёный чай и травы на сухой древесной базе. Современный clean-стиль.",
-  },
-  {
-    id: "p-08",
-    brand: "Iris & Ink",
-    name: "Powder Letter",
-    family: "Floral Woody Musk",
-    price: 110,
-    currency: "€",
-    seasons: ["Осень", "Весна"],
-    dayNight: ["День", "Ночь"],
-    longevity: 4,
-    sillage: 3,
-    notes: {
-      top: ["Бергамот", "Яблоко"],
-      heart: ["Ирис", "Жасмин"],
-      base: ["Мускус", "Пачули", "Сандал"],
-    },
-    tags: ["пудра", "элегантно", "подарок"],
-    description: "Пудровый ирис с мягкой древесной базой. Выверенный, спокойный, статусный.",
-  },
-];
-
-function clamp(n, min, max) {
-  return Math.max(min, Math.min(max, n));
-}
-
-function uniq(arr) {
-  return Array.from(new Set(arr));
-}
-
-function plural(n, one, few, many) {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod10 === 1 && mod100 !== 11) return one;
-  if (mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)) return few;
-  return many;
-}
-
-function scorePerfume(p, mustNotes, avoidNotes, seasons, dayNight) {
-  const all = [...p.notes.top, ...p.notes.heart, ...p.notes.base];
-  const allSet = new Set(all);
-
-  const mustHits = mustNotes.filter((n) => allSet.has(n)).length;
-  const avoidHits = avoidNotes.filter((n) => allSet.has(n)).length;
-
-  const seasonHits = seasons.length ? seasons.filter((s) => p.seasons.includes(s)).length : 0;
-  const dnHits = dayNight.length ? dayNight.filter((d) => p.dayNight.includes(d)).length : 0;
-
-  const noteCoverageBonus = mustNotes.length ? mustHits / mustNotes.length : 0;
-  const avoidPenalty = avoidHits * 2.8;
-
-  const baseScore = mustHits * 4 + seasonHits * 1.8 + dnHits * 1.4 + noteCoverageBonus * 2;
-  const score = baseScore - avoidPenalty;
-
-  return clamp(score, -999, 999);
-}
+import { useShop } from "../state/shop";
+import { clamp, uniq, plural } from "../lib/utils";
+import { THEME } from "../data/theme";
+import { priceForVolume, scorePerfume } from "../lib/scoring";
+import { SEASONS, ALL_NOTES_GROUPS, VOLUME_OPTIONS, PERFUMES } from "../data/perfumes";
+import PerfumeCard from "../components/PerfumeCard"
 
 function Dots({ value }) {
   return (
@@ -363,7 +105,10 @@ function Modal({ open, title, children, onClose }) {
               aria-modal="true"
               aria-label={title}
             >
-              <div className="flex items-center justify-between border-b p-5" style={{ borderColor: THEME.border2 }}>
+              <div
+                className="flex items-center justify-between border-b p-5"
+                style={{ borderColor: THEME.border2 }}
+              >
                 <div>
                   <div className="text-base font-semibold" style={{ color: THEME.text }}>
                     {title}
@@ -401,6 +146,35 @@ function Modal({ open, title, children, onClose }) {
         </>
       ) : null}
     </AnimatePresence>
+  );
+}
+
+function VolumeSelect({ value, onChange, size }) {
+  const isCompact = size === "compact";
+
+  return (
+    <div className={"flex items-center gap-2 " + (isCompact ? "" : "flex-wrap")}
+    >
+      <div className="text-xs" style={{ color: THEME.muted }}>
+        Объём
+      </div>
+      <select
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+        className={
+          "rounded-2xl border bg-transparent px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[rgba(127,122,73,0.40)] " +
+          (isCompact ? "" : "")
+        }
+        style={{ borderColor: THEME.border2, color: THEME.text }}
+        aria-label="Выбор объёма"
+      >
+        {VOLUME_OPTIONS.map((v) => (
+          <option key={v} value={v}>
+            {v} мл
+          </option>
+        ))}
+      </select>
+    </div>
   );
 }
 
@@ -489,139 +263,25 @@ function NotePicker({ title, value, onChange, placeholder, tone, allNotes }) {
   );
 }
 
-function PerfumeCard({ perfume, score, liked, onLike, onOpen }) {
-  const scoreLabel =
-    score >= 10 ? "Точное попадание" : score >= 6 ? "Хорошо подходит" : score >= 3 ? "Похоже" : "Слабое совпадение";
-
-  return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 10 }}
-      className="rounded-3xl border p-4"
-      style={{ borderColor: THEME.border2, background: THEME.surface2 }}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-xs" style={{ color: THEME.muted }}>
-            {perfume.brand}
-          </div>
-          <div className="mt-1 text-lg font-semibold" style={{ color: THEME.text }}>
-            {perfume.name}
-          </div>
-          <div className="mt-1 text-sm" style={{ color: THEME.muted }}>
-            {perfume.family}
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onLike}
-          className="rounded-full border p-2 transition hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[rgba(127,122,73,0.40)]"
-          style={{ borderColor: liked ? "rgba(247,242,232,0.20)" : THEME.border2 }}
-          aria-label={liked ? "Убрать из избранного" : "В избранное"}
-        >
-          <Heart className={"h-5 w-5 " + (liked ? "fill-current" : "")} style={{ color: liked ? THEME.accent : THEME.muted }} />
-        </button>
-      </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
-          <div className="text-xs" style={{ color: THEME.muted }}>
-            Сезон
-          </div>
-          <div className="mt-1 text-sm" style={{ color: THEME.text }}>
-            {perfume.seasons.join(" · ")}
-          </div>
-        </div>
-        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
-          <div className="text-xs" style={{ color: THEME.muted }}>
-            Время
-          </div>
-          <div className="mt-1 text-sm" style={{ color: THEME.text }}>
-            {perfume.dayNight.join(" · ")}
-          </div>
-        </div>
-        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
-          <div className="text-xs" style={{ color: THEME.muted }}>
-            Цена
-          </div>
-          <div className="mt-1 text-sm font-semibold" style={{ color: THEME.text }}>
-            {perfume.price}
-            {perfume.currency}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <div className="text-sm" style={{ color: THEME.muted }}>
-          {perfume.description}
-        </div>
-      </div>
-
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
-          <div className="text-xs" style={{ color: THEME.muted }}>
-            Стойкость
-          </div>
-          <div className="mt-1">
-            <Dots value={perfume.longevity} />
-          </div>
-        </div>
-        <div className="rounded-2xl border px-3 py-2" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
-          <div className="text-xs" style={{ color: THEME.muted }}>
-            Шлейф
-          </div>
-          <div className="mt-1">
-            <Dots value={perfume.sillage} />
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4">
-        <div className="text-xs" style={{ color: THEME.muted }}>
-          Совпадение: <span style={{ color: THEME.text }}>{scoreLabel}</span>
-        </div>
-        <div className="mt-2 h-2 w-full overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.10)" }}>
-          <div
-            className="h-full rounded-full"
-            style={{
-              width: String(clamp(Math.round((score / 12) * 100), 0, 100)) + "%",
-              background: THEME.accent,
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="mt-4 flex items-center gap-2">
-        <button
-          type="button"
-          className="flex-1 rounded-full px-4 py-2.5 text-sm font-semibold"
-          style={{ background: THEME.accent, color: "#0B0B0F" }}
-          onClick={onOpen}
-        >
-          Подробнее
-        </button>
-        <button
-          type="button"
-          className="rounded-full border px-4 py-2.5 text-sm transition hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-[rgba(127,122,73,0.40)]"
-          style={{ borderColor: THEME.border2, color: THEME.text }}
-          onClick={onOpen}
-        >
-          В корзину
-        </button>
-      </div>
-    </motion.div>
-  );
-}
-
-export default function PerfumeShopSite() {
+export default function CatalogPage () {
   const allNotes = useMemo(() => {
     const fromGroups = ALL_NOTES_GROUPS.flatMap((g) => g.notes);
     const fromPerfumes = PERFUMES.flatMap((p) => [...p.notes.top, ...p.notes.heart, ...p.notes.base]);
     return uniq([...fromGroups, ...fromPerfumes]).sort((a, b) => a.localeCompare(b, "ru"));
   }, []);
+
+  const defaultVolumeById = useMemo(() => {
+    const out = {};
+    for (const p of PERFUMES) out[p.id] = 50;
+    return out;
+  }, []);
+
+  const [volumeById, setVolumeById] = useState(defaultVolumeById);
+  const getVolume = (id) => (volumeById[id] ? volumeById[id] : 50);
+  const setVolume = (id, v) => {
+    const safe = clamp(Number(v) || 50, 10, 100);
+    setVolumeById((prev) => ({ ...prev, [id]: safe }));
+  };
 
   const [mustNotes, setMustNotes] = useState(["Бергамот"]);
   const [avoidNotes, setAvoidNotes] = useState([]);
@@ -633,7 +293,7 @@ export default function PerfumeShopSite() {
   const [filtersOpenMobile, setFiltersOpenMobile] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
 
-  const [likedIds, setLikedIds] = useState([]);
+  
   const [activePerfume, setActivePerfume] = useState(null);
 
   const computed = useMemo(() => {
@@ -775,12 +435,7 @@ export default function PerfumeShopSite() {
       >
         <div className="flex flex-wrap gap-2">
           {SEASONS.map((s) => (
-            <SoftButton
-              key={s.key}
-              active={seasons.includes(s.key)}
-              onClick={() => toggleSeason(s.key)}
-              title={s.hint}
-            >
+            <SoftButton key={s.key} active={seasons.includes(s.key)} onClick={() => toggleSeason(s.key)} title={s.hint}>
               <span
                 className="inline-block h-2 w-2 rounded-full"
                 style={{ background: seasons.includes(s.key) ? THEME.accent : "rgba(247,242,232,0.35)" }}
@@ -870,20 +525,31 @@ export default function PerfumeShopSite() {
     </div>
   );
 
+  const activeVolume = activePerfume ? getVolume(activePerfume.id) : 50;
+  const activePrice = activePerfume ? priceForVolume(activePerfume.price, activeVolume, activePerfume.baseVolume) : 0;
+const navigate = useNavigate();
+const { favorites, toggleFavorite, addToCart } = useShop();
+
   return (
     <div className="min-h-screen" style={{ background: THEME.bg, color: THEME.text }}>
-      <header className="sticky top-0 z-30 border-b backdrop-blur" style={{ borderColor: THEME.border2, background: "rgba(12,12,16,0.72)" }}>
+      <header
+        className="sticky top-0 z-30 border-b backdrop-blur"
+        style={{ borderColor: THEME.border2, background: "rgba(12,12,16,0.72)" }}
+      >
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-2xl border" style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}>
+            <div
+              className="grid h-10 w-10 place-items-center rounded-2xl border"
+              style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
+            >
               <span className="h-2.5 w-2.5 rounded-full" style={{ background: THEME.accent }} />
             </div>
             <div>
               <div className="text-sm font-semibold" style={{ letterSpacing: 0.2 }}>
-                Aroma Atelier
+                Bakhur
               </div>
               <div className="text-xs" style={{ color: THEME.muted }}>
-                Подбор по нотам и сезону
+                Сертифицированные маслянные ароматы 
               </div>
             </div>
           </div>
@@ -896,7 +562,7 @@ export default function PerfumeShopSite() {
               onClick={() => setHelpOpen(true)}
             >
               <Info className="mr-2 h-4 w-4" style={{ color: THEME.muted }} />
-              Как работает подбор
+              {/* Как работает подбор */}
             </button>
 
             <button
@@ -929,7 +595,10 @@ export default function PerfumeShopSite() {
           <div className="rounded-3xl border p-4" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2" style={{ color: THEME.muted2 }} />
+                <Search
+                  className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2"
+                  style={{ color: THEME.muted2 }}
+                />
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
@@ -982,12 +651,16 @@ export default function PerfumeShopSite() {
               <span className="rounded-full border px-3 py-1.5 text-sm" style={{ borderColor: THEME.border2, color: THEME.text }}>
                 {computed.total} {plural(computed.total, "вариант", "варианта", "вариантов")}
               </span>
-              {likedIds.length ? (
-                <span className="rounded-full border px-3 py-1.5 text-sm" style={{ borderColor: THEME.border2, color: THEME.text }}>
-                  <Heart className="mr-2 inline-block h-4 w-4" style={{ color: THEME.accent }} />
-                  {likedIds.length} {plural(likedIds.length, "избранный", "избранных", "избранных")}
-                </span>
-              ) : null}
+              {favorites.length ? (
+  <span
+    className="rounded-full border px-3 py-1.5 text-sm"
+    style={{ borderColor: THEME.border2, color: THEME.text }}
+  >
+    <Heart className="mr-2 inline-block h-4 w-4" style={{ color: THEME.accent }} />
+    {favorites.length} {plural(favorites.length, "избранный", "избранных", "избранных")}
+  </span>
+) : null}
+
 
               <button
                 type="button"
@@ -1026,27 +699,32 @@ export default function PerfumeShopSite() {
                   className="rounded-full border px-5 py-2.5 text-sm transition hover:bg-white/[0.06]"
                   style={{ borderColor: THEME.border2, color: THEME.text }}
                   onClick={clearAll}
-                >
+                > 
                   Сбросить всё
                 </button>
               </div>
             </div>
           ) : (
+            
             <div className="mt-5 grid gap-4 lg:grid-cols-2">
               <AnimatePresence>
                 {computed.items.map(({ perfume, score }) => (
                   <PerfumeCard
-                    key={perfume.id}
-                    perfume={perfume}
-                    score={score}
-                    liked={likedIds.includes(perfume.id)}
-                    onLike={() =>
-                      setLikedIds((prev) =>
-                        prev.includes(perfume.id) ? prev.filter((x) => x !== perfume.id) : [...prev, perfume.id]
-                      )
-                    }
-                    onOpen={() => setActivePerfume(perfume)}
-                  />
+                      key={perfume.id}
+                      perfume={perfume}
+                      score={score}
+                      liked={favorites.includes(perfume.id)}
+                      volume={getVolume(perfume.id)}
+                      onVolumeChange={(v) => setVolume(perfume.id, v)}
+                      onLike={() => toggleFavorite(perfume.id)}
+                      onDetails={() => navigate(`/perfumes/${perfume.id}`)}
+                      onAddToCart={() => {
+                        addToCart(perfume.id, getVolume(perfume.id), 1);
+                        navigate("/cart"); // если не хочешь переходить в корзину — удали эту строку
+                      }}
+                    />
+
+                  
                 ))}
               </AnimatePresence>
             </div>
@@ -1140,7 +818,8 @@ export default function PerfumeShopSite() {
             Чем больше совпало — тем выше в выдаче.
           </p>
           <p>
-            <span className="font-semibold">Исключения</span>: если "Не подходит" встречается в пирамиде — рейтинг сильно падает.
+            <span className="font-semibold">Исключения</span>: если "Не подходит" встречается в пирамиде — рейтинг сильно
+            падает.
           </p>
           <p>
             <span className="font-semibold">Сезон и время суток</span>: мягкие бонусы, чтобы рекомендации звучали уместно.
@@ -1160,24 +839,49 @@ export default function PerfumeShopSite() {
           <div className="space-y-5">
             <div className="rounded-3xl border p-4" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm" style={{ color: THEME.muted }}>
-                    {activePerfume.family}
+                <div className="flex items-start gap-4">
+                  <div
+                    className="h-32 w-32 shrink-0 overflow-hidden rounded-3xl border"
+                    style={{ borderColor: THEME.border2, background: "rgba(255,255,255,0.02)" }}
+                  >
+                    <img
+                      src={activePerfume.image}
+                      alt={activePerfume.brand + " " + activePerfume.name}
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
                   </div>
-                  <div className="mt-1 text-2xl font-semibold" style={{ color: THEME.text }}>
-                    {activePerfume.name}
-                  </div>
-                  <div className="mt-2 text-sm" style={{ color: THEME.muted }}>
-                    {activePerfume.description}
+                  <div>
+                    <div className="text-sm" style={{ color: THEME.muted }}>
+                      {activePerfume.family}
+                    </div>
+                    <div className="mt-1 text-2xl font-semibold" style={{ color: THEME.text }}>
+                      {activePerfume.name}
+                    </div>
+                    <div className="mt-2 text-sm" style={{ color: THEME.muted }}>
+                      {activePerfume.description}
+                    </div>
+
+                    <div className="mt-4">
+                      <VolumeSelect
+                        value={activeVolume}
+                        onChange={(v) => setVolume(activePerfume.id, v)}
+                        size="regular"
+                      />
+                    </div>
                   </div>
                 </div>
+
                 <div className="text-right">
                   <div className="text-xs" style={{ color: THEME.muted }}>
                     Цена
                   </div>
                   <div className="mt-1 text-2xl font-semibold" style={{ color: THEME.text }}>
-                    {activePerfume.price}
+                    {activePrice}
                     {activePerfume.currency}
+                  </div>
+                  <div className="mt-1 text-xs" style={{ color: THEME.muted2 }}>
+                    за {activeVolume} мл
                   </div>
                 </div>
               </div>
@@ -1275,17 +979,20 @@ export default function PerfumeShopSite() {
                 type="button"
                 className="flex-1 rounded-full px-5 py-3 text-sm font-semibold"
                 style={{ background: THEME.accent, color: "#0B0B0F" }}
-                onClick={() => setActivePerfume(null)}
+                onClick={() => {
+  addToCart(activePerfume.id, activeVolume, 1);
+  setActivePerfume(null);
+}}
+
               >
-                Добавить в корзину (демо)
+                Добавить в корзину ({activeVolume} мл)
               </button>
               <button
                 type="button"
                 className="flex-1 rounded-full border px-5 py-3 text-sm transition hover:bg-white/[0.06]"
                 style={{ borderColor: THEME.border2, color: THEME.text }}
-                onClick={() => {
-                  setLikedIds((prev) => (prev.includes(activePerfume.id) ? prev : [...prev, activePerfume.id]));
-                }}
+                onClick={() => toggleFavorite(activePerfume.id)}
+
               >
                 В избранное
               </button>
@@ -1298,7 +1005,7 @@ export default function PerfumeShopSite() {
 }
 
 // ------------------------------------------------------------
-// Tiny self-tests (run only in test environments)
+// Tiny self-tests (run only in Jest/CRA test env)
 // ------------------------------------------------------------
 
 function __assert(condition, message) {
@@ -1318,11 +1025,23 @@ function runUnitTests() {
 
   const s3 = scorePerfume(p, [], [], ["Лето"], ["День"]);
   __assert(Number.isFinite(s3), "score is finite");
+
+  // Extra tests
+  
+  __assert(plural(1, "a", "b", "c") === "a", "plural 1 works");
+  __assert(plural(2, "a", "b", "c") === "b", "plural 2 works");
+  __assert(plural(5, "a", "b", "c") === "c", "plural 5 works");
+  __assert(clamp(10, 0, 5) === 5, "clamp upper bound");
+  __assert(clamp(-1, 0, 5) === 0, "clamp lower bound");
+
+  // Volume price demo tests
+  __assert(priceForVolume(100, 50, 50) === 100, "priceForVolume base stays same");
+  __assert(priceForVolume(100, 10, 50) === 20, "priceForVolume scales down");
+  __assert(priceForVolume(100, 100, 50) === 200, "priceForVolume scales up");
 }
 
 const __RUN_TESTS__ =
-  (typeof process !== "undefined" && process && process.env && process.env.NODE_ENV === "test") ||
-  typeof globalThis !== "undefined" && (typeof globalThis.vitest !== "undefined" || typeof globalThis.jest !== "undefined");
+  typeof process !== "undefined" && process && process.env && process.env.NODE_ENV === "test";
 
 if (__RUN_TESTS__) {
   runUnitTests();
