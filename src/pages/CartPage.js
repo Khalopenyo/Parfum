@@ -2,11 +2,15 @@ import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { THEME } from "../data/theme";
 import { PERFUMES } from "../data/perfumes";
-import { useShop } from "../state/shop";
+import { useShopStore } from "../store/useShopStore";
 import { priceForVolume } from "../lib/scoring";
 
 export default function CartPage() {
-  const { cart, removeFromCart, setQty } = useShop();
+  const { cart, removeFromCart, setQty } = useShopStore((state) => ({
+    cart: state.cart,
+    removeFromCart: state.removeFromCart,
+    setQty: state.setQty,
+  }));
 
   const items = useMemo(() => {
     return cart

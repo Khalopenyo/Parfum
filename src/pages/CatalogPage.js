@@ -2,12 +2,14 @@ import { useNavigate } from "react-router-dom";
 import React, { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, Heart, Info, Search, SlidersHorizontal, X } from "lucide-react";
-import { useShop } from "../state/shop";
+import { useShopStore } from "../store/useShopStore";
+import { useCatalogStore } from "../store/useCatalogStore";
 import { clamp, uniq, plural } from "../lib/utils";
 import { THEME } from "../data/theme";
 import { priceForVolume, scorePerfume } from "../lib/scoring";
 import { SEASONS, ALL_NOTES_GROUPS, VOLUME_OPTIONS, PERFUMES } from "../data/perfumes";
-import PerfumeCard from "../components/PerfumeCard"
+import PerfumeCard from "../components/PerfumeCard";
+import { shallow } from "zustand/shallow";
 
 function Dots({ value }) {
   return (
@@ -270,25 +272,47 @@ export default function CatalogPage () {
     return uniq([...fromGroups, ...fromPerfumes]).sort((a, b) => a.localeCompare(b, "ru"));
   }, []);
 
-  const defaultVolumeById = useMemo(() => {
-    const out = {};
-    for (const p of PERFUMES) out[p.id] = 50;
-    return out;
-  }, []);
-
-  const [volumeById, setVolumeById] = useState(defaultVolumeById);
+  const {
+    volumeById,
+    setVolume,
+    mustNotes,
+    setMustNotes,
+    avoidNotes,
+    setAvoidNotes,
+    seasons,
+    setSeasons,
+    dayNight,
+    setDayNight,
+    q,
+    setQ,
+    sort,
+    setSort,
+    toggleSeason,
+    toggleDayNight,
+    clearAll,
+  } = useCatalogStore(
+    (state) => ({
+      volumeById: state.volumeById,
+      setVolume: state.setVolume,
+      mustNotes: state.mustNotes,
+      setMustNotes: state.setMustNotes,
+      avoidNotes: state.avoidNotes,
+      setAvoidNotes: state.setAvoidNotes,
+      seasons: state.seasons,
+      setSeasons: state.setSeasons,
+      dayNight: state.dayNight,
+      setDayNight: state.setDayNight,
+      q: state.q,
+      setQ: state.setQ,
+      sort: state.sort,
+      setSort: state.setSort,
+      toggleSeason: state.toggleSeason,
+      toggleDayNight: state.toggleDayNight,
+      clearAll: state.clearAll,
+    }),
+    shallow
+  );
   const getVolume = (id) => (volumeById[id] ? volumeById[id] : 50);
-  const setVolume = (id, v) => {
-    const safe = clamp(Number(v) || 50, 10, 100);
-    setVolumeById((prev) => ({ ...prev, [id]: safe }));
-  };
-
-  const [mustNotes, setMustNotes] = useState(["Бергамот"]);
-  const [avoidNotes, setAvoidNotes] = useState([]);
-  const [seasons, setSeasons] = useState([]);
-  const [dayNight, setDayNight] = useState([]);
-  const [q, setQ] = useState("");
-  const [sort, setSort] = useState("match");
 
   const [filtersOpenMobile, setFiltersOpenMobile] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
@@ -333,23 +357,6 @@ export default function CatalogPage () {
 
     return { total: sorted.length, items: sorted };
   }, [q, mustNotes, avoidNotes, seasons, dayNight, sort]);
-
-  const clearAll = () => {
-    setMustNotes([]);
-    setAvoidNotes([]);
-    setSeasons([]);
-    setDayNight([]);
-    setQ("");
-    setSort("match");
-  };
-
-  const toggleSeason = (s) => {
-    setSeasons((prev) => (prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s]));
-  };
-
-  const toggleDayNight = (d) => {
-    setDayNight((prev) => (prev.includes(d) ? prev.filter((x) => x !== d) : [...prev, d]));
-  };
 
   const presets = [
     {
@@ -527,8 +534,15 @@ export default function CatalogPage () {
 
   const activeVolume = activePerfume ? getVolume(activePerfume.id) : 50;
   const activePrice = activePerfume ? priceForVolume(activePerfume.price, activeVolume, activePerfume.baseVolume) : 0;
-const navigate = useNavigate();
-const { favorites, toggleFavorite, addToCart } = useShop();
+  const navigate = useNavigate();
+  const { favorites, toggleFavorite, addToCart } = useShopStore(
+    (state) => ({
+      favorites: state.favorites,
+      toggleFavorite: state.toggleFavorite,
+      addToCart: state.addToCart,
+    }),
+    shallow
+  );
 
   return (
     <div className="min-h-screen" style={{ background: THEME.bg, color: THEME.text }}>

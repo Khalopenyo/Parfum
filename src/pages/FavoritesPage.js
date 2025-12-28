@@ -1,13 +1,17 @@
 import React, { useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useShop } from "../state/shop";
+import { useShopStore } from "../store/useShopStore";
 import { PERFUMES } from "../data/perfumes";
 import { THEME } from "../data/theme";
 import PerfumeCard from "../components/PerfumeCard";
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
-  const { favorites, toggleFavorite, addToCart } = useShop();
+  const { favorites, toggleFavorite, addToCart } = useShopStore((state) => ({
+    favorites: state.favorites,
+    toggleFavorite: state.toggleFavorite,
+    addToCart: state.addToCart,
+  }));
 
   // Находим парфюмы по ID из избранного
   const favPerfumes = useMemo(() => {
