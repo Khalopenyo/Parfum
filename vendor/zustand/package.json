@@ -1,0 +1,7 @@
+{
+  "name": "zustand",
+  "version": "4.5.5",
+  "main": "index.js",
+  "module": "index.js",
+  "type": "module"
+}
