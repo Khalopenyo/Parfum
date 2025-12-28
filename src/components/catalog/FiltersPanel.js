@@ -143,13 +143,6 @@ export default function FiltersPanel({ onClose }) {
 
       <div className="grid gap-3 sm:grid-cols-2">
         {SEASONS.map((s) => (
-          <SoftButton
-            key={s.key}
-            title={s.hint}
-            active={seasons.includes(s.key)}
-            onClick={() => toggleSeason(s.key)}
-          >
-            {s.key}
           </SoftButton>
         ))}
         <SoftButton active={dayNight.includes("День")} onClick={() => toggleDayNight("День")}>День</SoftButton>
