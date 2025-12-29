@@ -51,7 +51,7 @@ export default function CatalogToolbar({
             className="rounded-2xl border bg-transparent px-3 py-3 text-sm outline-none focus:ring-2 focus:ring-[rgba(127,122,73,0.40)]"
             style={{ borderColor: THEME.border2, color: THEME.text }}
           >
-            <option value="match">По совпадению</option>
+            <option value="match" >По совпадению</option>
             <option value="price_asc">Цена: ↑</option>
             <option value="price_desc">Цена: ↓</option>
             <option value="longevity">Стойкость</option>

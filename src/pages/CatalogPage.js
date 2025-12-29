@@ -21,6 +21,7 @@ import CatalogHeader from "../components/CatalogHeader";
 import CatalogToolbar from "../components/CatalogToolbar";
 import EmptyResults from "../components/EmptyResults";
 import CatalogFooter from "../components/CatalogFooter";
+import HitsSlaider from "../components/HitsSlaider";
 
 export default function CatalogPage() {
   const navigate = useNavigate();
@@ -37,7 +38,7 @@ export default function CatalogPage() {
     setVolumeById((prev) => ({ ...prev, [id]: safe }));
   };
 
-  const [mustNotes, setMustNotes] = useState(["Бергамот"]);
+  const [mustNotes, setMustNotes] = useState([]);
   const [avoidNotes, setAvoidNotes] = useState([]);
   const [seasons, setSeasons] = useState([]);
   const [dayNight, setDayNight] = useState([]);
@@ -108,6 +109,7 @@ export default function CatalogPage() {
 
   return (
     <div className="min-h-screen" style={{ background: THEME.bg, color: THEME.text }}>
+      <HitsSlaider/>
       <CatalogHeader
         favoritesCount={favorites.length}
         cartCount={cartCount}
@@ -119,7 +121,7 @@ export default function CatalogPage() {
 
       <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 md:grid-cols-12">
         <aside className="hidden md:col-span-4 md:block">
-          <div className="sticky top-[76px] space-y-4">{filtersNode}</div>
+          <div className="space-y-4">{filtersNode}</div>
           <button
             type="button"
             className="mt-4 w-full rounded-full border px-4 py-2.5 text-sm transition hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-[rgba(127,122,73,0.40)]"
@@ -175,7 +177,6 @@ export default function CatalogPage() {
             </div>
           )}
 
-          <CatalogFooter onOpenHelp={() => setHelpOpen(true)} />
         </section>
       </main>
 
@@ -208,6 +209,8 @@ export default function CatalogPage() {
           toggleFavorite(activePerfume.id);
         }}
       />
+
+      <CatalogFooter onOpenHelp={() => setHelpOpen(true)} />
     </div>
   );
 }

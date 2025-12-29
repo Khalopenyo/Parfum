@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Check, Info, Search, X } from "lucide-react";
+import { Check, Search, X } from "lucide-react";
 
 import { THEME } from "../data/theme";
 import { plural } from "../lib/utils";
@@ -39,12 +39,44 @@ function Chip({ label, onRemove }) {
   );
 }
 
-function SectionCard({ title, subtitle, right, children }) {
+function Chevron({ open }) {
   return (
-    <div className="rounded-3xl border bg-white/[0.02] p-4" style={{ borderColor: THEME.border2 }}>
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <div className="text-sm font-semibold" style={{ color: THEME.text }}>
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      style={{
+        transform: open ? "rotate(180deg)" : "rotate(0deg)",
+        transition: "transform 160ms ease",
+      }}
+      // className=""
+    >
+      <polygon points="12,19 7,9 17,9" fill="white" />
+    </svg>
+  );
+}
+
+function SectionCard({ title, subtitle, children, defaultOpen = true, right }) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div
+      className="rounded-3xl border bg-white/[0.02] p-4"
+      style={{ borderColor: THEME.border2 }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-start justify-between gap-3 text-left"
+        aria-expanded={open}
+      >
+        <div className="w-full">
+          <div
+            className="text-sm w-full font-semibold"
+            style={{ color: THEME.text }}
+          >
             {title}
           </div>
           {subtitle ? (
@@ -53,9 +85,17 @@ function SectionCard({ title, subtitle, right, children }) {
             </div>
           ) : null}
         </div>
-        {right}
-      </div>
-      <div className="mt-3">{children}</div>
+
+        <div className="flex items-center gap-2">
+          <span
+            className="rounded-full p-1 hover:bg-white/10"
+            aria-hidden="true"
+          >
+            <Chevron open={open} />
+          </span>
+        </div>
+      </button>
+      {open ? <div className="mt-3">{children}</div> : null}
     </div>
   );
 }
@@ -72,8 +112,14 @@ function NotePicker({ title, value, onChange, placeholder, tone, allNotes }) {
 
   const badgeStyle =
     tone === "include"
-      ? { borderColor: "rgba(247,242,232,0.18)", background: "rgba(127,122,73,0.14)" }
-      : { borderColor: "rgba(247,242,232,0.18)", background: "rgba(247,242,232,0.06)" };
+      ? {
+          borderColor: "rgba(247,242,232,0.18)",
+          background: "rgba(127,122,73,0.14)",
+        }
+      : {
+          borderColor: "rgba(247,242,232,0.18)",
+          background: "rgba(247,242,232,0.06)",
+        };
 
   return (
     <SectionCard
@@ -83,20 +129,28 @@ function NotePicker({ title, value, onChange, placeholder, tone, allNotes }) {
           ? "Выберите ноты, которые хотите слышать"
           : "Отметьте ноты, которые точно не подходят"
       }
-      right={
-        <div className="rounded-full border px-3 py-1 text-xs" style={{ ...badgeStyle, color: THEME.text }}>
-          {value.length} {plural(value.length, "нота", "ноты", "нот")}
-        </div>
-      }
+      defaultOpen={false}
+      // right={
+      // }
     >
       <div className="flex flex-wrap gap-2">
         {value.length === 0 ? (
-          <div className="text-sm" style={{ color: THEME.muted }}>
-            Пока пусто.
+          <div className="text-sm flex justify-between w-full" style={{ color: THEME.muted }}>
+            Выберите
+            <div
+              className="rounded-full border px-3 py-1 text-xs"
+              style={{ ...badgeStyle, color: THEME.text }}
+            >
+              {value.length} {plural(value.length, "нота", "ноты", "нот")}
+            </div>
           </div>
         ) : (
           value.map((n) => (
-            <Chip key={n} label={n} onRemove={() => onChange(value.filter((x) => x !== n))} />
+            <Chip
+              key={n}
+              label={n}
+              onRemove={() => onChange(value.filter((x) => x !== n))}
+            />
           ))
         )}
       </div>
@@ -140,7 +194,12 @@ function NotePicker({ title, value, onChange, placeholder, tone, allNotes }) {
             >
               <span
                 className="mr-2 inline-block h-1.5 w-1.5 rounded-full align-middle"
-                style={{ background: tone === "include" ? THEME.accent : "rgba(247,242,232,0.60)" }}
+                style={{
+                  background:
+                    tone === "include"
+                      ? THEME.accent
+                      : "rgba(247,242,232,0.60)",
+                }}
               />
               {n}
             </button>
@@ -162,17 +221,15 @@ export default function CatalogFilters({
   avoidNotes,
   setAvoidNotes,
   allNotes,
-  onOpenHelp,
 }) {
   return (
     <div className="space-y-4">
-      <div className="rounded-3xl border p-4" style={{ borderColor: THEME.border2, background: THEME.surface2 }}>
-        <div className="text-sm font-semibold" style={{ color: THEME.text }}>
-          Быстрый старт
-        </div>
-        <div className="mt-1 text-xs" style={{ color: THEME.muted }}>
-          Пресеты — самый быстрый путь к подходящим ароматам.
-        </div>
+      <SectionCard
+        title="Быстрый старт"
+        subtitle="Пресеты — самый быстрый путь к подходящим ароматам."
+        defaultOpen={true}
+      >
+        <div className="mt-1 text-xs" style={{ color: THEME.muted }}></div>
         <div className="mt-3 flex flex-wrap gap-2">
           {presets.map((p) => (
             <button
@@ -186,22 +243,12 @@ export default function CatalogFilters({
             </button>
           ))}
         </div>
-      </div>
+      </SectionCard>
 
       <SectionCard
         title="Сезон"
         subtitle="Можно выбрать несколько"
-        right={
-          <button
-            type="button"
-            className="rounded-full border p-2 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-[rgba(127,122,73,0.40)]"
-            style={{ borderColor: THEME.border2 }}
-            onClick={onOpenHelp}
-            aria-label="Подсказка"
-          >
-            <Info className="h-4 w-4" style={{ color: THEME.muted }} />
-          </button>
-        }
+        defaultOpen={false}
       >
         <div className="flex flex-wrap gap-2">
           {SEASONS.map((s) => (
@@ -213,7 +260,11 @@ export default function CatalogFilters({
             >
               <span
                 className="inline-block h-2 w-2 rounded-full"
-                style={{ background: seasons.includes(s.key) ? THEME.accent : "rgba(247,242,232,0.35)" }}
+                style={{
+                  background: seasons.includes(s.key)
+                    ? THEME.accent
+                    : "rgba(247,242,232,0.35)",
+                }}
               />
               {s.key}
             </SoftButton>
@@ -221,19 +272,33 @@ export default function CatalogFilters({
         </div>
       </SectionCard>
 
-      <SectionCard title="Время" subtitle="Уточняет подбор">
+      <SectionCard title="Время" subtitle="Уточняет подбор" defaultOpen={false}>
         <div className="flex flex-wrap gap-2">
-          <SoftButton active={dayNight.includes("День")} onClick={() => toggleDayNight("День")}>
+          <SoftButton
+            active={dayNight.includes("День")}
+            onClick={() => toggleDayNight("День")}
+          >
             <span
               className="inline-block h-2 w-2 rounded-full"
-              style={{ background: dayNight.includes("День") ? THEME.accent : "rgba(247,242,232,0.35)" }}
+              style={{
+                background: dayNight.includes("День")
+                  ? THEME.accent
+                  : "rgba(247,242,232,0.35)",
+              }}
             />
             День
           </SoftButton>
-          <SoftButton active={dayNight.includes("Ночь")} onClick={() => toggleDayNight("Ночь")}>
+          <SoftButton
+            active={dayNight.includes("Ночь")}
+            onClick={() => toggleDayNight("Ночь")}
+          >
             <span
               className="inline-block h-2 w-2 rounded-full"
-              style={{ background: dayNight.includes("Ночь") ? THEME.accent : "rgba(247,242,232,0.35)" }}
+              style={{
+                background: dayNight.includes("Ночь")
+                  ? THEME.accent
+                  : "rgba(247,242,232,0.35)",
+              }}
             />
             Ночь
           </SoftButton>
@@ -258,11 +323,18 @@ export default function CatalogFilters({
         allNotes={allNotes}
       />
 
-      <SectionCard title="Популярные ноты" subtitle="Нажмите, чтобы добавить в 'Хочу слышать'">
+      <SectionCard
+        title="Популярные ноты"
+        subtitle="Нажмите, чтобы добавить в 'Хочу слышать'"
+        defaultOpen={false}
+      >
         <div className="space-y-3">
           {ALL_NOTES_GROUPS.map((g) => (
             <div key={g.label}>
-              <div className="text-xs font-semibold uppercase tracking-wider" style={{ color: THEME.muted2 }}>
+              <div
+                className="text-xs font-semibold uppercase tracking-wider"
+                style={{ color: THEME.muted2 }}
+              >
                 {g.label}
               </div>
               <div className="mt-2 flex flex-wrap gap-2">
@@ -273,19 +345,27 @@ export default function CatalogFilters({
                       key={n}
                       type="button"
                       onClick={() => {
-                        if (active) setMustNotes(mustNotes.filter((x) => x !== n));
+                        if (active)
+                          setMustNotes(mustNotes.filter((x) => x !== n));
                         else setMustNotes([...mustNotes, n]);
                       }}
                       className="rounded-full border px-3 py-1.5 text-sm transition hover:bg-white/[0.06] focus:outline-none focus:ring-2 focus:ring-[rgba(127,122,73,0.40)]"
                       style={{
-                        borderColor: active ? "rgba(247,242,232,0.20)" : THEME.border2,
+                        borderColor: active
+                          ? "rgba(247,242,232,0.20)"
+                          : THEME.border2,
                         color: THEME.text,
-                        background: active ? "rgba(127,122,73,0.14)" : "transparent",
+                        background: active
+                          ? "rgba(127,122,73,0.14)"
+                          : "transparent",
                       }}
                     >
                       {active ? (
                         <span className="mr-1 inline-flex align-middle">
-                          <Check className="h-4 w-4" style={{ color: THEME.accent }} />
+                          <Check
+                            className="h-4 w-4"
+                            style={{ color: THEME.accent }}
+                          />
                         </span>
                       ) : null}
                       {n}
