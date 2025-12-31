@@ -41,7 +41,7 @@ export default function CatalogHeader({
               Bakhur
             </div>
             <div className="text-xs" style={{ color: THEME.muted }}>
-              Подбор ароматов по нотам
+              Сертифицированные маслянные ароматы 
             </div>
           </div>
         </div>

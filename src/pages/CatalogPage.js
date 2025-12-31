@@ -1,15 +1,17 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
 import { useShop } from "../state/shop";
 import { clamp } from "../lib/utils";
 import { THEME } from "../data/theme";
-import { ALL_NOTES_GROUPS, PERFUMES } from "../data/perfumes";
+import { ALL_NOTES_GROUPS} from "../data/perfumes";
 import { CATALOG_PRESETS } from "../data/catalogPresets";
 
 import { buildAllNotes, buildDefaultVolumeById } from "../lib/catalog";
 import { computeCatalog } from "../lib/catalogCompute";
+
+import { fetchPerfumes } from "../services/perfumesRepo";
 
 import PerfumeCard from "../components/PerfumeCard";
 import CatalogFilters from "../components/Filters";
@@ -27,10 +29,47 @@ export default function CatalogPage() {
   const navigate = useNavigate();
   const { cart, favorites, toggleFavorite, addToCart } = useShop();
 
+  const [perfumes, setPerfumes] = useState([]);
+const [loadingPerfumes, setLoadingPerfumes] = useState(true);
+const [perfumesError, setPerfumesError] = useState(null);
+
+useEffect(() => {
+  let alive = true;
+  setLoadingPerfumes(true);
+
+  fetchPerfumes()
+    .then((data) => {
+      if (!alive) return;
+      setPerfumes(data);
+      setPerfumesError(null);
+    })
+    .catch((e) => {
+      console.error(e);
+      if (!alive) return;
+      setPerfumesError(e);
+      setPerfumes([]);
+    })
+    .finally(() => {
+      if (!alive) return;
+      setLoadingPerfumes(false);
+    });
+
+  return () => {
+    alive = false;
+  };
+}, []);
+
+
   const cartCount = cart.reduce((sum, x) => sum + (Number(x.qty) || 0), 0);
 
-  const allNotes = useMemo(() => buildAllNotes(PERFUMES, ALL_NOTES_GROUPS), []);
-  const [volumeById, setVolumeById] = useState(() => buildDefaultVolumeById(PERFUMES));
+  const allNotes = useMemo(() => buildAllNotes(perfumes, ALL_NOTES_GROUPS), [perfumes]);
+
+const [volumeById, setVolumeById] = useState({});
+
+useEffect(() => {
+  setVolumeById(buildDefaultVolumeById(perfumes));
+}, [perfumes]);
+
 
   const getVolume = (id) => (volumeById[id] != null ? volumeById[id] : 50);
   const setVolume = (id, v) => {
@@ -55,7 +94,7 @@ export default function CatalogPage() {
   const computed = useMemo(
     () =>
       computeCatalog({
-        perfumes: PERFUMES,
+        perfumes,
         q,
         mustNotes,
         avoidNotes,
@@ -63,7 +102,7 @@ export default function CatalogPage() {
         dayNight,
         sort,
       }),
-    [q, mustNotes, avoidNotes, seasons, dayNight, sort]
+    [perfumes, q, mustNotes, avoidNotes, seasons, dayNight, sort]
   );
 
   const clearAll = () => {
@@ -145,37 +184,44 @@ export default function CatalogPage() {
             onOpenFilters={() => setFiltersOpenMobile(true)}
           />
 
-          {computed.total === 0 ? (
-            <EmptyResults
-              onRelax={() => {
-                setAvoidNotes([]);
-                setSeasons([]);
-                setDayNight([]);
-              }}
-              onClearAll={clearAll}
-            />
-          ) : (
-            <div className="mt-5 grid gap-4 lg:grid-cols-2">
-              <AnimatePresence>
-                {computed.items.map(({ perfume, score }) => (
-                  <PerfumeCard
-                    key={perfume.id}
-                    perfume={perfume}
-                    score={score}
-                    liked={favorites.includes(perfume.id)}
-                    volume={getVolume(perfume.id)}
-                    onVolumeChange={(v) => setVolume(perfume.id, v)}
-                    onLike={() => toggleFavorite(perfume.id)}
-                    onDetails={() => setActivePerfume(perfume)}
-                    onAddToCart={() => {
-                      addToCart(perfume.id, getVolume(perfume.id), 1);
-                      navigate("/cart");
-                    }}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
+         {loadingPerfumes ? (
+  <div className="mt-5 text-sm opacity-70">Загрузка каталога...</div>
+) : perfumesError ? (
+  <div className="mt-5 text-sm opacity-70">
+    Не получилось загрузить каталог из Firestore. Проверь Firestore Rules / интернет.
+  </div>
+) : computed.total === 0 ? (
+  <EmptyResults
+    onRelax={() => {
+      setAvoidNotes([]);
+      setSeasons([]);
+      setDayNight([]);
+    }}
+    onClearAll={clearAll}
+  />
+) : (
+  <div className="mt-5 grid gap-4 lg:grid-cols-2">
+    <AnimatePresence>
+      {computed.items.map(({ perfume, score }) => (
+        <PerfumeCard
+          key={perfume.id}
+          perfume={perfume}
+          score={score}
+          liked={favorites.includes(perfume.id)}
+          volume={getVolume(perfume.id)}
+          onVolumeChange={(v) => setVolume(perfume.id, v)}
+          onLike={() => toggleFavorite(perfume.id)}
+          onDetails={() => setActivePerfume(perfume)}
+          onAddToCart={() => {
+            addToCart(perfume.id, getVolume(perfume.id), 1);
+            navigate("/cart");
+          }}
+        />
+      ))}
+    </AnimatePresence>
+  </div>
+)}
+
 
         </section>
       </main>

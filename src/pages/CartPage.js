@@ -29,7 +29,7 @@ export default function CartPage() {
           <div>
             <div className="text-2xl font-semibold">Корзина</div>
             <div className="mt-1 text-sm" style={{ color: THEME.muted }}>
-              Товары сохраняются в браузере (localStorage)
+              
             </div>
           </div>
 
